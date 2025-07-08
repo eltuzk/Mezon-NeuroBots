@@ -6,6 +6,7 @@
     "start": "nodemon index"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "dotenv": "^16.4.5",
     "mezon-sdk": "^2.7.93"
   },
