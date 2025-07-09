@@ -12,7 +12,7 @@ dotenv.config();
 async function main() {
   const client = new MezonClient(process.env.APPLICATION_TOKEN);
   await client.login();
-
+  
   client.onChannelMessage(async (event) => {
     const text = event?.content?.t?.toLowerCase();
     if (!text) return;
@@ -20,11 +20,11 @@ async function main() {
     if (text === "*ping") {
       const channel = await client.channels.fetch(event.channel_id);
       const message = await channel.messages.fetch(event.message_id);
-      await message.reply({ t: "pong!" });
+      await message.reply({ t: "poooo!" });
       return;
     }
 
-    if (text.startsWith("*exercise")) return handleExercise(client, event);
+    if (text.startsWith("*bai_tap")) return handleExercise(client, event);
     if (text.startsWith("*guide")) return handleGuide(client, event);
     if (text.startsWith("*quiz")) return handleQuiz(client, event);
     if (text.startsWith("*source")) return handleSource(client, event);
