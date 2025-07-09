@@ -25,7 +25,7 @@ async function main() {
     }
 
     if (text.startsWith("*bai_tap")) return handleExercise(client, event);
-    if (text.startsWith("*guide")) return handleGuide(client, event);
+    if (text.startsWith("*huong_dan")) return handleGuide(client, event);
     if (text.startsWith("*quiz")) return handleQuiz(client, event);
     if (text.startsWith("*source")) return handleSource(client, event);
     if (text.startsWith("*remind")) return handleRemind(client, event);
