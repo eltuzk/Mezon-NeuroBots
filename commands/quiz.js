@@ -1,16 +1,55 @@
+// 📦 Import hàm gọi API Gemini
 const { generateGeminiText } = require("../gemini");
 
+// 📤 Hàm xử lý lệnh *trac_nghiem
 module.exports = async (client, event) => {
-  const text = event?.content?.t?.toLowerCase();
-  const channel = await client.channels.fetch(event.channel_id);
-  const message = await channel.messages.fetch(event.message_id);
+  try {
+    // 📨 Lấy nội dung tin nhắn và chuẩn hóa
+    const text = event?.content?.t?.trim().toLowerCase();
 
-  const parts = text.split(" ");
-  const subject = parts[1] || "math";
+    // 📡 Lấy channel và message để phản hồi
+    const channel = await client.channels.fetch(event.channel_id);
+    const message = await channel.messages.fetch(event.message_id);
 
-  const prompt = `Hãy tạo 3 câu hỏi trắc nghiệm có 4 lựa chọn về môn ${subject}. Đánh số và đánh dấu đáp án đúng.`;
+    // ✂️ Tách từng phần của lệnh
+    const parts = text.split(/\s+/);
 
-  const reply = await generateGeminiText(prompt);
+    // ✅ Kiểm tra cú pháp: lệnh phải bắt đầu bằng *trac_nghiem
+    if (parts[0] !== "*trac_nghiem" || parts.length < 1) {
+      return await message.reply({
+        t: "📘 Cú pháp đúng: `*trac_nghiem <môn học>`\nVí dụ: `*trac_nghiem hóa học`"
+      });
+    }
 
-  await message.reply({ t: `📝 Quiz ${subject}:\n\n${reply}` });
+    // 📌 Lấy môn học (nếu có), mặc định là "toán"
+    const subject = parts.length >= 2 ? parts.slice(1).join(" ") : "toán";
+
+    // 🧠 Tạo prompt gửi đến Gemini để tạo câu hỏi trắc nghiệm
+    const prompt = `
+      Tạo 3 câu hỏi trắc nghiệm ngắn cho học sinh cấp 3 về môn "${subject}".
+      Mỗi câu có 4 lựa chọn và đánh dấu rõ đáp án đúng.
+      Trình bày bằng tiếng Việt, rõ ràng, dễ đọc, không dùng LaTeX hoặc ký hiệu khó hiểu.
+    `.trim();
+
+    // 🚀 Gửi prompt đến Gemini
+    const reply = await generateGeminiText(prompt);
+
+    // 💬 Trả kết quả cho người dùng
+    await message.reply({
+      t: `📝 **Trắc nghiệm ${subject.toUpperCase()}**\n\n${reply}`
+    });
+
+  } catch (error) {
+    // ❌ Bắt lỗi nếu có vấn đề
+    console.error("❌ Lỗi ở *trac_nghiem:", error);
+    try {
+      const channel = await client.channels.fetch(event.channel_id);
+      const message = await channel.messages.fetch(event.message_id);
+      await message.reply({
+        t: "⚠️ Đã có lỗi xảy ra khi tạo câu hỏi trắc nghiệm. Vui lòng thử lại sau."
+      });
+    } catch (err) {
+      console.error("⚠️ Lỗi khi gửi thông báo lỗi:", err);
+    }
+  }
 };
