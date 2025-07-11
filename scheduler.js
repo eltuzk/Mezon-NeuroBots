@@ -18,7 +18,11 @@ client.login().then(() => {
     try {
       const raw = fs.readFileSync("./reminders.json", "utf-8");
       reminders = JSON.parse(raw);
-    } catch (e) {}
+    } catch (e) {
+      reminders = [];
+    }
+
+    const updatedReminders = [];
 
     for (const r of reminders) {
       if (r.time === currentTime) {
@@ -27,10 +31,22 @@ client.login().then(() => {
           await channel.send({
             t: `🔔 Đến giờ học **${r.subject.toUpperCase()}** như bạn đã đặt lúc ${r.time}!`
           });
+          console.log(`✅ Đã nhắc lịch: ${r.subject} - ${r.time}`);
+          // ❌ Không thêm vào updatedReminders => nhắc xong thì xóa
         } catch (err) {
           console.error("⚠️ Gửi nhắc thất bại:", err);
+          updatedReminders.push(r); // ❗ Gửi lỗi thì giữ lại
         }
+      } else {
+        updatedReminders.push(r); // ⏳ Chưa đến giờ thì giữ lại
       }
+    }
+
+    // ✍️ Ghi lại file reminders.json với danh sách mới
+    try {
+      fs.writeFileSync("./reminders.json", JSON.stringify(updatedReminders, null, 2));
+    } catch (err) {
+      console.error("❌ Lỗi khi cập nhật reminders.json:", err);
     }
   });
 });
