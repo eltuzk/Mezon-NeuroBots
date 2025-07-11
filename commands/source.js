@@ -1,63 +1,67 @@
 // 📦 Import hàm gọi API Gemini
 const { generateGeminiText } = require("../gemini");
 
-// 👇 Export hàm xử lý lệnh *source
+// 📤 Hàm xử lý lệnh *tai_lieu
 module.exports = async (client, event) => {
   try {
-    // 🔍 Lấy nội dung tin nhắn gốc
     const text = event?.content?.t?.trim();
-
-    // 📡 Lấy thông tin kênh và tin nhắn để phản hồi lại
     const channel = await client.channels.fetch(event.channel_id);
     const message = await channel.messages.fetch(event.message_id);
-
-    // ✂️ Tách từng từ trong câu lệnh
     const parts = text.split(/\s+/);
 
-    // ✅ Kiểm tra cú pháp: phải bắt đầu bằng *source và có ít nhất 1 đối số
     if (parts[0]?.toLowerCase() !== "*tai_lieu" || parts.length < 2) {
       return await message.reply({
-        t: "📘 Cú pháp đúng: `*tai_lieu <môn học>`\nVí dụ: `*tai_lieu toán`"
+        t: "📘 Cú pháp đúng: `*tai_lieu <môn học>`\nVí dụ: `*tai_lieu hóa học`"
       });
     }
 
-    // 📌 Lấy phần còn lại làm tên môn học (có thể gồm nhiều từ)
     const subject = parts.slice(1).join(" ").trim();
-
-    // ⚠️ Kiểm tra nếu môn học trống
     if (!subject) {
       return await message.reply({ t: "⚠️ Bạn chưa nhập tên môn học." });
     }
 
-    // 🧠 Tạo prompt để yêu cầu Gemini gợi ý tài nguyên học tập
+    // 🧠 Prompt Gemini
     const prompt = `
-      Gợi ý 3 website hoặc video chất lượng giúp học tốt môn "${subject}" dành cho học sinh Việt Nam.
-      Chỉ sử dụng các nguồn TÀI LIỆU TIẾNG VIỆT (hoặc có phụ đề tiếng Việt).
-      Mỗi nguồn cần có mô tả ngắn (1-2 dòng) và ghi rõ đường link truy cập.
-      Trình bày rõ ràng, dễ đọc, viết bằng tiếng Việt.
+      Gợi ý 3 nguồn tài liệu chất lượng cao bằng tiếng Việt giúp học sinh Việt Nam học tốt môn "${subject}".
+      Mỗi nguồn gồm:
+      - Tên tài nguyên (ví dụ: "Toán Math – Chuyên mục Giải Tích")
+      - Mô tả ngắn (~2-3 câu) dễ hiểu, phù hợp học sinh
+      - Đường link gọn gàng, rõ ràng (chỉ hiển thị 1 lần)
+      Trình bày không dùng ký hiệu ** hoặc * hoặc []().
     `.trim();
 
+    const raw = await generateGeminiText(prompt);
 
-    // 🚀 Gửi prompt đến Gemini để lấy nội dung
-    const reply = await generateGeminiText(prompt);
+    // ✨ Làm đẹp kết quả
+    const formatted = raw
+      .replace(/\*\*(.*?)\*\*/g, "$1")         // bỏ **...**
+      .replace(/\*(.*?)\*/g, "$1")             // bỏ *...*
+      .replace(/\[(https?:\/\/[^\]]+)\]\s*\((\1)\)/g, "$1") // xóa lặp link [x](x)
+      .replace(/\n{3,}/g, "\n\n")              // xóa nhiều dòng trống liền nhau
+      .split(/\n(?=\d+\.\s)/)                  // tách từng nguồn theo "1. ", "2. "...
+      .map(entry => {
+        // Làm đẹp từng mục
+        return entry
+          .replace(/Mô tả\s*[:：]/i, "📌 Mô tả:")
+          .replace(/Đường\s*link\s*[:：]/i, "🔗 Link:")
+          .trim();
+      })
+      .join("\n\n");
 
-    // 💬 Gửi kết quả trả về cho người dùng
+    // 📤 Gửi lại
     await message.reply({
-      t: `🔗 **Tài nguyên học ${subject.toUpperCase()}**\n\n${reply}`
+      t: `📚 **Tài nguyên học ${subject.toUpperCase()}**\n\n${formatted}`
     });
 
   } catch (error) {
-    // ❌ Log lỗi khi có vấn đề xảy ra trong quá trình xử lý chính
     console.error("❌ Lỗi ở *tai_lieu:", error);
     try {
-      // 🔁 Thử gửi thông báo lỗi cho người dùng
       const channel = await client.channels.fetch(event.channel_id);
       const message = await channel.messages.fetch(event.message_id);
       await message.reply({
-        t: "⚠️ Đã có lỗi xảy ra khi tìm tài nguyên học. Vui lòng thử lại sau."
+        t: "⚠️ Đã có lỗi xảy ra khi tìm tài liệu. Vui lòng thử lại sau."
       });
     } catch (err) {
-      // ⚠️ Log lỗi nếu cả việc gửi thông báo lỗi cũng gặp sự cố
       console.error("⚠️ Lỗi khi gửi thông báo lỗi:", err);
     }
   }

@@ -1,5 +1,7 @@
+// 📦 Import hàm gọi API Gemini
 const { generateGeminiText } = require("../gemini");
 
+// 📤 Hàm xử lý lệnh *huong_dan
 module.exports = async (client, event) => {
   try {
     const text = event?.content?.t?.trim();
@@ -14,25 +16,37 @@ module.exports = async (client, event) => {
       });
     }
 
-    // ✂️ Lấy đề bài bằng cách bỏ phần "*huong_dan"
+    // ✂️ Lấy đề bài
     const deBai = parts.slice(1).join(" ").trim();
-
     if (!deBai) {
       return await message.reply({ t: "⚠️ Bạn chưa nhập đề bài cần giải." });
     }
 
-    // 🧠 Prompt gửi đến Gemini
+    // 🧠 Prompt Gemini
     const prompt = `
       Bạn là một trợ lý học tập thông minh. Hãy giải chi tiết bài tập sau dành cho học sinh cấp 3:
-      ${deBai}
-      Hướng dẫn giải cần rõ ràng, chia thành từng bước, trình bày bằng tiếng Việt, dễ hiểu, không quá dài, đúng chương trình trung học phổ thông.
-      Ưu tiên sử dụng số mũ Unicode như ², ³, ⁴... và đơn vị chuẩn (cm², m/s²...), viết thật đẹp, không dùng LaTeX, không dùng công thức ASCII.
+
+      "${deBai}"
+
+      Yêu cầu trình bày:
+      - Giải thích rõ ràng, trình bày từng bước với gạch đầu dòng như "🔹 Bước 1:", "🔸 Bước 2:",...
+      - Viết bằng tiếng Việt dễ hiểu, đúng chương trình THPT.
+      - Không dùng LaTeX hay kí hiệu khó đọc.
+      - Ưu tiên dùng số mũ như ², ³, ⁴ và đơn vị chuẩn (cm², m/s²,...).
     `.trim();
 
-    const solution = await generateGeminiText(prompt);
+    const rawSolution = await generateGeminiText(prompt);
 
+    // 🧽 Làm sạch format đầu ra
+    const formatted = rawSolution
+      .replace(/\*\*(.*?)\*\*/g, "$1")       // bỏ **đậm**
+      .replace(/\*(.*?)\*/g, "$1")           // bỏ *nghiêng*
+      .replace(/\[(https?:\/\/[^\]]+)\]\s*\((\1)\)/g, "$1") // xóa [link](link) lặp
+      .replace(/\n{3,}/g, "\n\n")            // xóa thừa dòng
+
+    // 📤 Gửi kết quả
     await message.reply({
-      t: `🧠 **Hướng dẫn giải:**\n\n${solution}`
+      t: `🧠 **Hướng dẫn giải bài toán:**\n\n${formatted}`
     });
 
   } catch (error) {
