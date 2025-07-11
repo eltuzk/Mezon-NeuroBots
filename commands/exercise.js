@@ -1,4 +1,5 @@
 const { generateGeminiText } = require("../gemini");
+const { updateStreak } = require("../streak");
 
 module.exports = async (client, event) => {
   try {
@@ -16,7 +17,7 @@ module.exports = async (client, event) => {
 
     // Danh sách các môn học có thể gồm nhiều từ
     const danhSachMonHoc = [
-      "toán", "vật lí", "vật lý", "lý", "lí", "hóa", "hóa học", "sinh học", "sinh", "khoa học xã hội", "nghệ thuật", "Giáo dục kinh tế và pháp luật",
+      "toán", "vật lí", "vật lý", "lý", "lí", "hóa", "hóa học", "sinh học", "sinh", "khoa học xã hội", "nghệ thuật", "Giáo dục kinh tế và pháp luật", "tiếng trung", "tiếng nga",
       "tiếng anh", "anh văn", "tiếng pháp", "địa lí", "địa lý", "địa", "lịch sử", "sử", "khoa học tự nhiên", "tin học", "tin", "công nghệ"
     ];
 
@@ -70,9 +71,19 @@ module.exports = async (client, event) => {
     // Gọi Gemini
     const reply = await generateGeminiText(prompt);
 
+    // Gửi kết quả chính
     await message.reply({
       t: `📚 **${soLuong} bài tập - ${monHoc.toUpperCase()} | ${chuDe}**\n\n${reply}`
     });
+
+    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
+    const userId = event.sender_id; // lấy id người dùng
+    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
+    if (updated) {                    
+      await message.reply({
+        t: `🔥 BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!`,
+      });
+    }
   } 
   catch (error) {
     console.error("❌ Lỗi ở *bài_tập:", error);
