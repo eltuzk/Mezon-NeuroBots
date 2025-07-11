@@ -1,3 +1,4 @@
+const { updateStreak } = require("../streak");
 const fs = require("fs");
 
 // 📤 Xử lý lệnh *nhac_lich
@@ -49,8 +50,17 @@ module.exports = async (client, event) => {
     await message.reply({
       t: `⏰ Đã đặt lịch nhắc học **${subject.toUpperCase()}** vào **${time}**.\n👉 Bot sẽ tự nhắc đúng giờ nếu bạn đã bật cron.`
     });
-
-  } catch (err) {
+    
+    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
+    const userId = event.sender_id; // lấy id người dùng
+    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
+    if (updated) {                    
+      await message.reply({
+        t: `🔥 BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!`,
+      });
+    }
+  } 
+  catch (err) {
     console.error("❌ Lỗi khi xử lý *nhac_lich:", err);
     try {
       const channel = await client.channels.fetch(event.channel_id);

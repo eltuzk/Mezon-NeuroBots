@@ -1,5 +1,6 @@
 // 📦 Import hàm gọi API Gemini
 const { generateGeminiText } = require("../gemini");
+const { updateStreak } = require("../streak");
 
 // 📤 Hàm xử lý lệnh *huong_dan
 module.exports = async (client, event) => {
@@ -48,8 +49,17 @@ module.exports = async (client, event) => {
     await message.reply({
       t: `🧠 **Hướng dẫn giải bài toán:**\n\n${formatted}`
     });
-
-  } catch (error) {
+    
+    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
+    const userId = event.sender_id; // lấy id người dùng
+    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
+    if (updated) {                    
+      await message.reply({
+        t: `🔥 BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!`,
+      });
+    }
+  } 
+  catch (error) {
     console.error("❌ Lỗi ở *huong_dan:", error);
     try {
       const channel = await client.channels.fetch(event.channel_id);
