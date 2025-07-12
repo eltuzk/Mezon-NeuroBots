@@ -6,6 +6,9 @@ const handleGuide = require("./commands/guide");
 const handleQuiz = require("./commands/quiz");
 const handleSource = require("./commands/source");
 const handleRemind = require("./commands/remind");
+const handleDeleteReminder = require("./commands/delete_reminder");
+const handleViewReminders = require("./commands/view_reminders");
+const handleUsageGuide = require("./commands/usageGuide"); 
 
 dotenv.config();
 
@@ -17,18 +20,14 @@ async function main() {
     const text = event?.content?.t?.toLowerCase();
     if (!text) return;
 
-    if (text === "*ping") {
-      const channel = await client.channels.fetch(event.channel_id);
-      const message = await channel.messages.fetch(event.message_id);
-      await message.reply({ t: "poooo!" });
-      return;
-    }
-
     if (text.startsWith("*bai_tap")) return handleExercise(client, event);
     if (text.startsWith("*huong_dan")) return handleGuide(client, event);
     if (text.startsWith("*trac_nghiem")) return handleQuiz(client, event);
     if (text.startsWith("*tai_lieu")) return handleSource(client, event);
     if (text.startsWith("*nhac_lich")) return handleRemind(client, event);
+    if (text.startsWith("*xoa_lich")) return handleDeleteReminder(client, event);
+    if (text.startsWith("*xem_lich")) return handleViewReminders(client, event);
+    if (text.startsWith("*gioi_thieu_bot")) return handleUsageGuide(client, event);
   });
 }
 
