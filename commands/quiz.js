@@ -1,9 +1,12 @@
+const boldify = require("../boldify");
 // 📦 Import hàm gọi API Gemini
 const { generateGeminiText } = require("../gemini");
 const { updateStreak } = require("../streak");
 
 // 📤 Hàm xử lý lệnh *trac_nghiem
 module.exports = async (client, event) => {
+  console.dir(event, { depth: null });
+
   try {
     // 📨 Lấy nội dung tin nhắn và chuẩn hóa
     const text = event?.content?.t?.trim().toLowerCase();
@@ -35,45 +38,40 @@ module.exports = async (client, event) => {
     // 🚀 Gửi prompt đến Gemini
     const reply = await generateGeminiText(prompt);
 
-    // 🎨 Xử lý kết quả: tìm và gắn đáp án đúng hợp lệ
-    const formatted = reply
-      .split(/\n{2,}/) // tách từng câu hỏi
-      .map(block => {
-        // Tìm tất cả các đoạn được bọc **
-        const matches = [...block.matchAll(/\*\*(.*?)\*\*/g)];
-        let answerRaw = null;
+    // Xử lý kết quả: tìm và gắn đáp án đúng hợp lệ
+    const formattedBlocks = reply
+    .split(/\n{2,}/)
+    .map(block => {
+      const matches = [...block.matchAll(/\*\*(.*?)\*\*/g)];
+      let answer = null;
 
-        for (const match of matches) {
-          const content = match[1].trim();
-          // Chỉ lấy đáp án nếu bắt đầu bằng A. B. C. D.
-          if (/^[A-D]\./.test(content)) {
-            answerRaw = content;
-            break;
-          }
+      for (const m of matches) {
+        const content = m[1].trim();
+        if (/^[A-D]\./.test(content)) {
+          answer = content;
+          break;
         }
+      }
 
-        // Xóa toàn bộ dấu **
-        const cleanBlock = block.replace(/\*\*(.*?)\*\*/g, "$1").trim();
+      const cleanedBlock = block.replace(/\*\*([A-D]\..*?)\*\*/g, "$1");
 
-        // Gắn dòng đáp án đúng nếu có
-        return answerRaw
-          ? `${cleanBlock}\n➡️ Đáp án đúng: ${answerRaw}`
-          : cleanBlock;
-      })
-      .join("\n\n");
-
-    // 💬 Trả kết quả cho người dùng
-    await message.reply({
-      t: `📝 **Trắc nghiệm ${subject.toUpperCase()}**\n\n${formatted}`
+      return answer
+        ? `${cleanedBlock.trimEnd()}\n**➡️ Đáp án đúng: ${answer}**`
+        : cleanedBlock;
     });
+
+    const formatted = formattedBlocks.join("\n\n");
+
+    // 💬 Trả kết quả cho người dùng (để boldify lo phần **đậm**)
+    const title = `📝 **Trắc nghiệm ${subject.toUpperCase()}**\n\n`;
+    await message.reply(boldify(title + formatted));
     
     /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
     const userId = event.sender_id; // lấy id người dùng
     const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
     if (updated) {                    
-      await message.reply({
-        t: `🔥 BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!`,
-      });
+      const streakRaw = `🔥 **BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!**`;
+      await message.reply(boldify(streakRaw));   // 👈 dùng hàm boldify
     }
   } 
   catch (error) {

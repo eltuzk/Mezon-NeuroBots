@@ -16,6 +16,13 @@ async function main() {
   const client = new MezonClient(process.env.APPLICATION_TOKEN);
   await client.login();
   
+  /* GHI LOG MỌI TIN NHẮN ĐẾN ĐỂ PHÂN TÍCH */
+  client.onChannelMessage((event) => {
+    console.log("=== RAW EVENT START ===");
+    console.dir(event, { depth: null });
+    console.log("=== RAW EVENT END ===");
+  });
+
   client.onChannelMessage(async (event) => {
     const text = event?.content?.t?.toLowerCase();
     if (!text) return;

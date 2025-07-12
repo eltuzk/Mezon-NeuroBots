@@ -1,3 +1,4 @@
+const boldify = require("../boldify");
 const fs = require("fs");
 
 // 📤 Xử lý lệnh *xoa_lich
@@ -62,8 +63,16 @@ module.exports = async (client, event) => {
     await message.reply({
       t: `🗑️ Đã xóa lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}** thành công.`
     });
-
-  } catch (err) {
+    
+    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
+    const userId = event.sender_id; // lấy id người dùng
+    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
+    if (updated) {                    
+      const streakRaw = `🔥 **BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!**`;
+      await message.reply(boldify(streakRaw));   // 👈 dùng hàm boldify
+    }
+  } 
+  catch (err) {
     console.error("❌ Lỗi khi xử lý *xoa_lich:", err);
     try {
       const channel = await client.channels.fetch(event.channel_id);
