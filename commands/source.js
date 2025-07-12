@@ -1,3 +1,4 @@
+const boldify = require("../boldify");
 // 📦 Import hàm gọi API Gemini
 const { generateGeminiText } = require("../gemini");
 const { updateStreak } = require("../streak");
@@ -34,33 +35,30 @@ module.exports = async (client, event) => {
     const raw = await generateGeminiText(prompt);
 
     // ✨ Làm đẹp kết quả
-    const formatted = raw
-      .replace(/\*\*(.*?)\*\*/g, "$1")         // bỏ **...**
-      .replace(/\*(.*?)\*/g, "$1")             // bỏ *...*
-      .replace(/\[(https?:\/\/[^\]]+)\]\s*\((\1)\)/g, "$1") // xóa lặp link [x](x)
-      .replace(/\n{3,}/g, "\n\n")              // xóa nhiều dòng trống liền nhau
-      .split(/\n(?=\d+\.\s)/)                  // tách từng nguồn theo "1. ", "2. "...
-      .map(entry => {
-        // Làm đẹp từng mục
-        return entry
+    const cleaned = raw
+      .replace(/\[(https?:\/\/[^\]]+)\]\s*\(\1\)/g, "$1") // xoá lặp link [x](x)
+      .replace(/\n{3,}/g, "\n\n");                        // xoá 3+ dòng trắng → 2 dòng
+
+    const formatted = cleaned
+      .split(/\n(?=\d+\.\s)/)             // tách theo "1. ", "2. "…
+      .map(entry =>
+        entry
           .replace(/Mô tả\s*[:：]/i, "📌 Mô tả:")
           .replace(/Đường\s*link\s*[:：]/i, "🔗 Link:")
-          .trim();
-      })
+          .trim()
+      )
       .join("\n\n");
 
-    // 📤 Gửi lại
-    await message.reply({
-      t: `📚 **Tài nguyên học ${subject.toUpperCase()}**\n\n${formatted}`
-    });
+    // 📤 Gửi lại (để boldify sinh mk)
+    const title = `📚 **Tài nguyên học ${subject.toUpperCase()}**\n\n`;
+    await message.reply(boldify(title + formatted));
     
     /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
     const userId = event.sender_id; // lấy id người dùng
     const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
     if (updated) {                    
-      await message.reply({
-        t: `🔥 BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!`,
-      });
+      const streakRaw = `🔥 **BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!**`;
+      await message.reply(boldify(streakRaw));
     }
   } 
   catch (error) {

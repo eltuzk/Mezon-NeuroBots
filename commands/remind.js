@@ -1,3 +1,5 @@
+const boldify = require("../boldify");
+const { updateStreak } = require("../streak");
 const fs = require("fs");
 
 // 📤 Xử lý lệnh *nhac_lich
@@ -57,7 +59,15 @@ module.exports = async (client, event) => {
       t: `⏰ Đã đặt lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}**.`
     });
 
-  } catch (err) {
+    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
+    const userId = event.sender_id; // lấy id người dùng
+    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
+    if (updated) {                    
+      const streakRaw = `🔥 **BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!**`;
+      await message.reply(boldify(streakRaw));
+    }
+  } 
+  catch (err) {
     console.error("❌ Lỗi khi xử lý *nhac_lich:", err);
     try {
       const channel = await client.channels.fetch(event.channel_id);

@@ -1,3 +1,4 @@
+const boldify = require("../boldify");
 // 📦 Import hàm gọi API Gemini
 const { generateGeminiText } = require("../gemini");
 const { updateStreak } = require("../streak");
@@ -39,24 +40,22 @@ module.exports = async (client, event) => {
     const rawSolution = await generateGeminiText(prompt);
 
     // 🧽 Làm sạch format đầu ra
-    const formatted = rawSolution
-      .replace(/\*\*(.*?)\*\*/g, "$1")       // bỏ **đậm**
-      .replace(/\*(.*?)\*/g, "$1")           // bỏ *nghiêng*
-      .replace(/\[(https?:\/\/[^\]]+)\]\s*\((\1)\)/g, "$1") // xóa [link](link) lặp
-      .replace(/\n{3,}/g, "\n\n")            // xóa thừa dòng
+    const cleaned = rawSolution
+      .replace(/\[(https?:\/\/[^\]]+)\]\s*\(\1\)/g, "$1") // xóa [link](link) lặp
+      .replace(/\n{3,}/g, "\n\n"); // xóa dòng thừa
 
-    // 📤 Gửi kết quả
-    await message.reply({
-      t: `🧠 **Hướng dẫn giải bài toán:**\n\n${formatted}`
-    });
+    // Gộp nội dung với tiêu đề
+    const fullText = `🧠 **Hướng dẫn giải bài toán:**\n\n${cleaned}`;
+
+    // 📤 Gửi reply với in đậm chính xác
+    await message.reply(boldify(fullText));
     
     /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
     const userId = event.sender_id; // lấy id người dùng
     const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
     if (updated) {                    
-      await message.reply({
-        t: `🔥 BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!`,
-      });
+      const streakRaw = `🔥 **BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!**`;
+      await message.reply(boldify(streakRaw));   // 👈 dùng hàm boldify
     }
   } 
   catch (error) {
