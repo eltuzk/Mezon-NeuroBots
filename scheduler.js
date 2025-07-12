@@ -5,48 +5,43 @@ require("dotenv").config();
 
 const client = new MezonClient(process.env.APPLICATION_TOKEN);
 
-// 👉 Đăng nhập Mezon
 client.login().then(() => {
-  console.log("🟢 Scheduler đang chạy...");
+  console.log("🟢 Scheduler is running...");
 
-  // 🔁 Mỗi phút kiểm tra reminders
   cron.schedule("* * * * *", async () => {
     const now = new Date();
     const currentTime = now.toTimeString().slice(0, 5); // "HH:mm"
+
+    // ✅ Chuyển sang định dạng DD-MM-YYYY
+    const day = String(now.getDate()).padStart(2, "0");
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const year = now.getFullYear();
+    const currentDate = `${year}-${month}-${day}`;
 
     let reminders = [];
     try {
       const raw = fs.readFileSync("./reminders.json", "utf-8");
       reminders = JSON.parse(raw);
-    } catch (e) {
-      reminders = [];
-    }
+    } catch (e) {}
 
     const updatedReminders = [];
 
     for (const r of reminders) {
-      if (r.time === currentTime) {
+      if (r.time === currentTime && r.date === currentDate) {
         try {
           const channel = await client.channels.fetch(r.channel_id);
           await channel.send({
             t: `🔔 Đến giờ học **${r.subject.toUpperCase()}** như bạn đã đặt lúc ${r.time}!`
           });
-          console.log(`✅ Đã nhắc lịch: ${r.subject} - ${r.time}`);
-          // ❌ Không thêm vào updatedReminders => nhắc xong thì xóa
         } catch (err) {
           console.error("⚠️ Gửi nhắc thất bại:", err);
-          updatedReminders.push(r); // ❗ Gửi lỗi thì giữ lại
         }
+        // Không thêm reminder đã nhắc nữa
       } else {
-        updatedReminders.push(r); // ⏳ Chưa đến giờ thì giữ lại
+        updatedReminders.push(r);
       }
     }
 
-    // ✍️ Ghi lại file reminders.json với danh sách mới
-    try {
-      fs.writeFileSync("./reminders.json", JSON.stringify(updatedReminders, null, 2));
-    } catch (err) {
-      console.error("❌ Lỗi khi cập nhật reminders.json:", err);
-    }
+    fs.writeFileSync("./reminders.json", JSON.stringify(updatedReminders, null, 2));
   });
 });

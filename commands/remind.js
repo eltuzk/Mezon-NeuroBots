@@ -1,4 +1,3 @@
-const { updateStreak } = require("../streak");
 const fs = require("fs");
 
 // 📤 Xử lý lệnh *nhac_lich
@@ -6,34 +5,41 @@ module.exports = async (client, event) => {
   try {
     const text = event?.content?.t?.toLowerCase().trim();
 
-    // 📡 Lấy kênh và tin nhắn
     const channel = await client.channels.fetch(event.channel_id);
     const message = await channel.messages.fetch(event.message_id);
 
     const parts = text.split(/\s+/);
 
-    // ✅ Kiểm tra lệnh có bắt đầu đúng không
-    if (parts[0] !== "*nhac_lich" || parts.length < 3) {
+    // ✅ Kiểm tra lệnh và số lượng tham số
+    if (parts[0] !== "*nhac_lich" || parts.length < 4) {
       return await message.reply({
-        t: "📘 Cú pháp đúng: `*nhac_lich <môn học> <giờ>`\nVí dụ: `*nhac_lich toán 20:00`"
+        t: "📘 Cú pháp đúng: `*nhac_lich <môn học> <giờ> <ngày-tháng-năm>`\nVí dụ: `*nhac_lich toán 19:30 12-07-2025`"
       });
     }
 
-    // ✂️ Trích tên môn và giờ
-    const subject = parts.slice(1, parts.length - 1).join(" ");
-    const time = parts[parts.length - 1];
+    const subject = parts.slice(1, parts.length - 2).join(" ");
+    const time = parts[parts.length - 2];
+    const rawDate = parts[parts.length - 1];
 
-    // ⏱ Kiểm tra định dạng giờ
-    if (!/^\d{1,2}:\d{2}$/.test(time)) {
+    // ⏱ Kiểm tra định dạng giờ và ngày
+    const timeRegex = /^\d{1,2}:\d{2}$/;
+    const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
+
+    if (!timeRegex.test(time) || !dateRegex.test(rawDate)) {
       return await message.reply({
-        t: "⏰ Giờ không hợp lệ. Hãy nhập theo định dạng HH:mm (ví dụ: 19:30)"
+        t: "⚠️ Sai định dạng.\nGiờ đúng: `HH:mm` (ví dụ: 19:30)\nNgày đúng: `dd-mm-yyyy` (ví dụ: 12-07-2025)"
       });
     }
 
-    // 💾 Lưu vào reminders.json
+    // 📅 Chuyển ngày về định dạng yyyy-mm-dd
+    const [day, month, year] = rawDate.split("-");
+    const isoDate = `${year}-${month}-${day}`;
+
+    // 💾 Tạo đối tượng nhắc và lưu
     const reminder = {
       subject,
       time,
+      date: isoDate,
       channel_id: event.channel_id
     };
 
@@ -46,21 +52,12 @@ module.exports = async (client, event) => {
     list.push(reminder);
     fs.writeFileSync("./reminders.json", JSON.stringify(list, null, 2));
 
-    // 📢 Phản hồi xác nhận
+    // 📢 Chỉ phản hồi phần xác nhận đơn giản
     await message.reply({
-      t: `⏰ Đã đặt lịch nhắc học **${subject.toUpperCase()}** vào **${time}**.\n👉 Bot sẽ tự nhắc đúng giờ nếu bạn đã bật cron.`
+      t: `⏰ Đã đặt lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}**.`
     });
-    
-    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
-    const userId = event.sender_id; // lấy id người dùng
-    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
-    if (updated) {                    
-      await message.reply({
-        t: `🔥 BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!`,
-      });
-    }
-  } 
-  catch (err) {
+
+  } catch (err) {
     console.error("❌ Lỗi khi xử lý *nhac_lich:", err);
     try {
       const channel = await client.channels.fetch(event.channel_id);
