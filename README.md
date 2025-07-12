@@ -51,8 +51,6 @@ cd mezon-neurobots
 ```bash
 npm install
 npm install node-cron
-# hoặc
-yarn install
 ```
 
 ### 3. Cấu hình `.env`
@@ -60,7 +58,7 @@ yarn install
 Tạo file `.env` từ mẫu:
 
 ```bash
-cp .env.example .env
+$ cp .env.example .env
 ```
 
 Điền thông tin:
@@ -77,9 +75,7 @@ GEMINI_API_KEY=your_google_gemini_api_key
 ### Khởi chạy bot chính:
 
 ```bash
-npm start
-# hoặc
-node index.js
+npm run start
 ```
 
 ### Chạy riêng tiến trình nhắc lịch học mỗi phút:
@@ -142,7 +138,5 @@ Mỗi khi bạn sử dụng bất kỳ lệnh nào của bot trong ngày, bot s�
 ## 🧪 Ghi chú bản quyền
 
 Dự án thuộc sở hữu của nhóm phát triển **NeuroBots**, được xây dựng cho **mục đích học tập và nghiên cứu** trong hệ sinh thái **Mezon**.
-
-Không khuyến khích sử dụng cho mục đích thương mại nếu chưa có sự đồng ý của nhóm phát triển.
 
 ---
