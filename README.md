@@ -20,6 +20,23 @@ Một **bot học tập thông minh** được xây dựng bằng Mezon SDK và 
 
 ---
 
+## ☁️ Triển khai trên Mezon
+
+### Bước 1: Tạo ứng dụng Mezon
+
+- Truy cập [https://mezon.dev](https://mezon.ai/)
+- Đăng nhập và tạo **ứng dụng mới**
+- Lưu lại `Application Token` và `API Key` → sử dụng trong `.env`
+
+### Bước 2: Thêm bot vào một Clan
+
+- Truy cập Clan (cộng đồng học tập) bạn muốn dùng bot
+- Vào phần **Cài đặt Bot > Thêm Bot**
+- Chọn bot bạn vừa tạo hoặc nhập `Application ID`
+- Bot sẽ tự động xuất hiện trong kênh chat
+
+---
+
 ## 🛠️ Cài đặt
 
 ### 1. Clone dự án
@@ -34,6 +51,8 @@ cd mezon-neurobots
 ```bash
 npm install
 npm install node-cron
+# hoặc
+yarn install
 ```
 
 ### 3. Cấu hình `.env`
@@ -41,13 +60,14 @@ npm install node-cron
 Tạo file `.env` từ mẫu:
 
 ```bash
-$ cp .env.example .env
+cp .env.example .env
 ```
 
 Điền thông tin:
 
 ```env
 APPLICATION_TOKEN=your_mezon_token
+MEZON_API_KEY=your_mezon_api_key
 GEMINI_API_KEY=your_google_gemini_api_key
 ```
 
@@ -58,10 +78,12 @@ GEMINI_API_KEY=your_google_gemini_api_key
 ### Khởi chạy bot chính:
 
 ```bash
-npm run start
+npm start
+# hoặc
+node index.js
 ```
 
-### Chạy song song bot và lịch nhắc:
+### Chạy riêng tiến trình nhắc lịch học mỗi phút:
 
 ```bash
 node scheduler.js
@@ -120,3 +142,7 @@ Khi bạn sử dụng các lệnh như `*bai_tap`, `*huong_dan`, `*trac_nghiem`,
 ## 🧪 Ghi chú bản quyền
 
 Dự án thuộc sở hữu của nhóm phát triển **NeuroBots**, được xây dựng cho **mục đích học tập và nghiên cứu** trong hệ sinh thái **Mezon**.
+
+Không khuyến khích sử dụng cho mục đích thương mại nếu chưa có sự đồng ý của nhóm phát triển.
+
+---
