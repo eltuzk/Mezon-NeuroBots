@@ -24,7 +24,7 @@ Một **bot học tập thông minh** được xây dựng bằng Mezon SDK và 
 
 ### Bước 1: Tạo ứng dụng Mezon
 
-- Truy cập [https://mezon.dev](https://mezon.ai/)
+- Truy cập [Mezon Developer Portal](https://mezon.ai/)
 - Đăng nhập và tạo **ứng dụng mới**
 - Lưu lại `Application Token` và `API Key` → sử dụng trong `.env`
 
@@ -67,7 +67,6 @@ cp .env.example .env
 
 ```env
 APPLICATION_TOKEN=your_mezon_token
-MEZON_API_KEY=your_mezon_api_key
 GEMINI_API_KEY=your_google_gemini_api_key
 ```
 
