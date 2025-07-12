@@ -1,43 +1,69 @@
-// 📘 Giới thiệu bot học tập
+const fs = require("fs");
+
+// 📤 Xử lý lệnh *xem_lich
 module.exports = async (client, event) => {
   try {
+    const text = event?.content?.t?.toLowerCase().trim();
+
     const channel = await client.channels.fetch(event.channel_id);
     const message = await channel.messages.fetch(event.message_id);
 
-    await message.reply({
-      t: `
-🤖 **GIỚI THIỆU BOT HỌC TẬP**
+    // 📂 Đọc reminders
+    let list = [];
+    try {
+      const raw = fs.readFileSync("./reminders.json", "utf-8");
+      list = JSON.parse(raw);
+    } catch (e) {}
 
-Dưới đây là các lệnh bạn có thể dùng:
+    const myReminders = list.filter(r => r.channel_id === event.channel_id);
 
-1️⃣ **Đặt lịch học**  
-\`*nhac_lich <môn học> <giờ> <ngày-tháng-năm>\`  
-🕒 Ví dụ: \`*nhac_lich toán 19:30 13-07-2025\`
+    if (myReminders.length === 0) {
+      return await message.reply({ t: "📭 Bạn chưa có lịch nhắc nào." });
+    }
 
-2️⃣ **Xóa lịch học**  
-\`*xoa_lich <môn học> <giờ> <ngày-tháng-năm>\`  
-🗑️ Ví dụ: \`*xoa_lich vật lý 20:00 13-07-2025\`
+    // ✅ Nhóm theo ngày
+    const grouped = {};
+    for (const r of myReminders) {
+      if (!grouped[r.date]) grouped[r.date] = [];
+      grouped[r.date].push(r);
+    }
 
-3️⃣ **Xem lịch học đã đặt**  
-\`*xem_lich\`
+    // 🗂 Sắp xếp theo ngày và giờ
+    const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+    let result = "📅 Danh sách lịch nhắc:\n";
 
-4️⃣ **Tạo trắc nghiệm theo môn học**  
-\`*trac_nghiem <tên môn>\`  
-🧪 Ví dụ: \`*trac_nghiem sinh học\`
+    for (const date of sortedDates) {
+      const formattedDate = formatDate(date);
+      result += `\n📆 Ngày ${formattedDate}:\n`;
 
-5️⃣ **Tìm tài liệu học tập**  
-\`*tai_lieu <chủ đề>\`  
-🔍 Ví dụ: \`*tai_lieu phương trình vi phân\`
+      // sắp theo giờ trong ngày
+      grouped[date].sort((a, b) => {
+        const [h1, m1] = a.time.split(":").map(Number);
+        const [h2, m2] = b.time.split(":").map(Number);
+        return h1 !== h2 ? h1 - h2 : m1 - m2;
+      });
 
-6️⃣ **Hỏi AI**  
-\`*hoi <câu hỏi bất kỳ>\`  
-💬 Ví dụ: \`*hoi hệ điều hành là gì?\`
+      grouped[date].forEach((r, i) => {
+        result += `🔹 ${i + 1}. ${r.subject.toUpperCase()} – lúc ${r.time}\n`;
+      });
+    }
 
-👉 Gõ \`*gioi_thieu_bot\` bất cứ lúc nào để xem lại hướng dẫn này nhé!
-      `.trim()
-    });
+    await message.reply({ t: result });
 
   } catch (err) {
-    console.error("❌ Lỗi khi gửi giới thiệu bot:", err);
+    console.error("❌ Lỗi khi xử lý *xem_lich:", err);
+    try {
+      const channel = await client.channels.fetch(event.channel_id);
+      const message = await channel.messages.fetch(event.message_id);
+      await message.reply({ t: "⚠️ Có lỗi khi xem lịch. Vui lòng thử lại sau." });
+    } catch (e2) {
+      console.error("⚠️ Lỗi khi gửi thông báo lỗi:", e2);
+    }
   }
 };
+
+// 🔧 Chuyển yyyy-mm-dd => dd-mm-yyyy
+function formatDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return `${d}-${m}-${y}`;
+}
