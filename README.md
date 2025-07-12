@@ -104,6 +104,7 @@ node scheduler.js
 │   ├── view_reminders.js
 │   └── usageGuide.js
 ├── streak.js
+├── boldify.js
 ├── gemini.js
 ├── index.js
 ├── scheduler.js
@@ -127,7 +128,7 @@ node scheduler.js
 
 ## 📈 Tính năng streak học tập
 
-Khi bạn sử dụng các lệnh như `*bai_tap`, `*huong_dan`, `*trac_nghiem`, `*tai_lieu`, bot sẽ tự động cập nhật **streak ngày học liên tiếp** để giúp bạn duy trì thói quen học tập hằng ngày.
+Mỗi khi bạn sử dụng bất kỳ lệnh nào của bot trong ngày, bot sẽ tự động cập nhật **streak ngày học liên tiếp** để giúp bạn duy trì thói quen học tập hằng ngày.
 
 ---
 
