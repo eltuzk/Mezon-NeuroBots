@@ -9,6 +9,7 @@ Một **bot học tập thông minh** được xây dựng bằng Mezon SDK và 
 
 | Lệnh                  | Mô tả |
 |-----------------------|-------|
+| `*gioi_thieu_bot`     | Hiển thị hướng dẫn sử dụng bot. |
 | `*bai_tap`            | Tạo bài tập ngắn tự luận theo môn học và chủ đề. |
 | `*huong_dan`          | Hướng dẫn chi tiết cách giải đề bài cụ thể. |
 | `*trac_nghiem`        | Tạo 3 câu hỏi trắc nghiệm có đáp án. |
@@ -16,7 +17,6 @@ Một **bot học tập thông minh** được xây dựng bằng Mezon SDK và 
 | `*nhac_lich`          | Đặt lịch học (giờ & ngày cụ thể). |
 | `*xoa_lich`           | Hủy lịch học đã đặt. |
 | `*xem_lich`           | Hiển thị danh sách lịch học đã lưu. |
-| `*gioi_thieu_bot`     | Hiển thị hướng dẫn sử dụng bot. |
 
 ---
 
