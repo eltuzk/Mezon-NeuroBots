@@ -14,9 +14,11 @@ module.exports = async (client, event) => {
 
     // ✅ Kiểm tra lệnh và số lượng tham số
     if (parts[0] !== "*nhac_lich" || parts.length < 4) {
-      return await message.reply({
-        t: "📘 Cú pháp đúng: `*nhac_lich <môn học> <giờ> <ngày-tháng-năm>`\nVí dụ: `*nhac_lich toán 19:30 12-07-2025`"
-      });
+      const helpText = `
+        📘 **Cú pháp đúng:** \`*nhac_lich <môn học> <giờ> <ngày-tháng-năm>\`
+        Ví dụ: \`*nhac_lich toán 19:30 02-07-2025\`
+      `.trim();
+      return await message.reply(boldify(helpText));
     }
 
     const subject = parts.slice(1, parts.length - 2).join(" ");
@@ -29,7 +31,7 @@ module.exports = async (client, event) => {
 
     if (!timeRegex.test(time) || !dateRegex.test(rawDate)) {
       return await message.reply({
-        t: "⚠️ Sai định dạng.\nGiờ đúng: `HH:mm` (ví dụ: 19:30)\nNgày đúng: `dd-mm-yyyy` (ví dụ: 12-07-2025)"
+        t: "⚠️ Sai định dạng.\nGiờ đúng: `HH:mm` (ví dụ: 19:30)\nNgày đúng: `dd-mm-yyyy` (ví dụ: 02-07-2025)"
       });
     }
 
@@ -55,9 +57,9 @@ module.exports = async (client, event) => {
     fs.writeFileSync("./reminders.json", JSON.stringify(list, null, 2));
 
     // 📢 Chỉ phản hồi phần xác nhận đơn giản
-    await message.reply({
-      t: `⏰ Đã đặt lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}**.`
-    });
+    await message.reply(boldify(
+      `⏰ Đã đặt lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}**.`
+    ));
 
     /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
     const userId = event.sender_id; // lấy id người dùng
