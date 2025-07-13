@@ -1,81 +1,87 @@
-const boldify = require("../boldify");
-// 📦 Import hàm gọi API Gemini
-const { generateGeminiText } = require("../gemini");
-const { updateStreak } = require("../streak");
+const boldify = require("../boldify"); // Định dạng in đậm
+const { generateGeminiText } = require("../gemini"); // Gọi AI Gemini tạo nội dung
+const { updateStreak } = require("../streak"); // Theo dõi streak học tập
 
-// 📤 Hàm xử lý lệnh *trac_nghiem
+// Xử lý lệnh *trac_nghiem
 module.exports = async (client, event) => {
-  console.dir(event, { depth: null });
+  console.dir(event, { depth: null }); // Log để debug nếu cần
 
   try {
-    // 📨 Lấy nội dung tin nhắn và chuẩn hóa
+    // Lấy nội dung tin nhắn và chuẩn hóa
     const text = event?.content?.t?.trim().toLowerCase();
-
-    // 📡 Lấy channel và message để phản hồi
     const channel = await client.channels.fetch(event.channel_id);
     const message = await channel.messages.fetch(event.message_id);
-
-    // ✂️ Tách từng phần của lệnh
     const parts = text.split(/\s+/);
 
-    // ✅ Kiểm tra cú pháp: lệnh phải bắt đầu bằng *trac_nghiem
+    // Kiểm tra cú pháp lệnh
     if (parts[0] !== "*trac_nghiem" || parts.length < 1) {
       return await message.reply({
-        t: "📘 Cú pháp đúng: `*trac_nghiem <môn học>`\nVí dụ: `*trac_nghiem hóa học`"
+        t: "📘 Cú pháp đúng: `*trac_nghiem <môn học> [số lượng]`\nVí dụ: `*trac_nghiem vật lý 5 bài`"
       });
     }
 
-    // 📌 Lấy môn học (nếu có), mặc định là "toán"
-    const subject = parts.length >= 2 ? parts.slice(1).join(" ") : "toán";
+    // 👉 Phân tích môn học và số lượng câu hỏi từ lệnh
+    let subject = "toán";
+    let count = 3;
 
-    // 🧠 Tạo prompt gửi đến Gemini để tạo câu hỏi trắc nghiệm
+    if (parts.length >= 2) {
+      const rawParams = parts.slice(1).join(" ");
+      const match = rawParams.match(/^(.*?)(\d+)\s*(bài)?$/i);
+
+      if (match) {
+        subject = match[1].trim();
+        count = parseInt(match[2]);
+      } else {
+        subject = rawParams.trim();
+      }
+    }
+
+    // Tạo prompt gửi tới Gemini để sinh câu hỏi
     const prompt = `
-      Tạo 3 câu hỏi trắc nghiệm ngắn cho học sinh cấp 3 về môn "${subject}".
+      Tạo ${count} câu hỏi trắc nghiệm ngắn cho học sinh cấp 3 về môn "${subject}".
       Mỗi câu có 4 lựa chọn (A, B, C, D). Chỉ đánh dấu 1 đáp án đúng bằng ** như **C. Đáp án**.
       Trình bày bằng tiếng Việt, rõ ràng, dễ đọc, không dùng LaTeX hoặc ký hiệu khó hiểu.
     `.trim();
 
-    // 🚀 Gửi prompt đến Gemini
     const reply = await generateGeminiText(prompt);
 
-    // Xử lý kết quả: tìm và gắn đáp án đúng hợp lệ
+    // 👉 Định dạng lại kết quả trả về từ Gemini
     const formattedBlocks = reply
-    .split(/\n{2,}/)
-    .map(block => {
-      const matches = [...block.matchAll(/\*\*(.*?)\*\*/g)];
-      let answer = null;
+      .split(/\n{2,}/)
+      .map(block => {
+        const matches = [...block.matchAll(/\*\*(.*?)\*\*/g)];
+        let answer = null;
 
-      for (const m of matches) {
-        const content = m[1].trim();
-        if (/^[A-D]\./.test(content)) {
-          answer = content;
-          break;
+        for (const m of matches) {
+          const content = m[1].trim();
+          if (/^[A-D]\./.test(content)) {
+            answer = content;
+            break;
+          }
         }
-      }
 
-      const cleanedBlock = block.replace(/\*\*([A-D]\..*?)\*\*/g, "$1");
+        const cleanedBlock = block.replace(/\*\*([A-D]\..*?)\*\*/g, "$1");
 
-      return answer
-        ? `${cleanedBlock.trimEnd()}\n**➡️ Đáp án đúng: ${answer}**`
-        : cleanedBlock;
-    });
+        return answer
+          ? `${cleanedBlock.trimEnd()}\n**➡️ Đáp án đúng: ${answer}**`
+          : cleanedBlock;
+      });
 
     const formatted = formattedBlocks.join("\n\n");
 
-    // 💬 Trả kết quả cho người dùng (để boldify lo phần **đậm**)
-    const title = `📝 **Trắc nghiệm ${subject.toUpperCase()}**\n\n`;
+    // Gửi nội dung trắc nghiệm về cho người dùng
+    const title = `📝 **Trắc nghiệm ${subject.toUpperCase()} (${count} câu)**\n\n`;
     await message.reply(boldify(title + formatted));
-    
-    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
-    const userId = event.sender_id; // lấy id người dùng
-    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
-    if (updated) {                    
+
+    // 🔥 Cập nhật chuỗi streak nếu người dùng hoạt động hôm nay
+    const userId = event.sender_id;
+    const { updated, streak } = updateStreak(userId);
+    if (updated) {
       const streakRaw = `🔥 **BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!**`;
-      await message.reply(boldify(streakRaw));   // 👈 dùng hàm boldify
+      await message.reply(boldify(streakRaw));
     }
-  } 
-  catch (error) {
-    // ❌ Bắt lỗi nếu có vấn đề
+  } catch (error) {
+    // Gửi thông báo lỗi nếu có sự cố
     console.error("❌ Lỗi ở *trac_nghiem:", error);
     try {
       const channel = await client.channels.fetch(event.channel_id);
