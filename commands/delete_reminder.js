@@ -50,17 +50,17 @@ module.exports = async (client, event) => {
     ));
 
     if (filtered.length === list.length) {
-      return await message.reply({
-        t: `⚠️ Không tìm thấy lịch nhắc **${subject.toUpperCase()}** lúc **${time} ngày ${rawDate}** để xóa.`
-      });
+      return await message.reply(boldify(
+        `⚠️ Không tìm thấy lịch nhắc **${subject.toUpperCase()}** lúc **${time} ngày ${rawDate}** để xóa.`
+      ));
     }
 
     fs.writeFileSync("./reminders.json", JSON.stringify(filtered, null, 2));
     console.log("📤 Sau khi xóa:", filtered);
 
-    await message.reply({
-      t: `🗑️ Đã xóa lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}** thành công.`
-    });
+    await message.reply(boldify(
+      `🗑️ Đã xóa lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}** thành công.`
+    ));
 
     const userId = event.sender_id;
     const { updated, streak } = updateStreak(userId);
