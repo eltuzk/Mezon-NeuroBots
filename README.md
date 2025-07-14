@@ -1,4 +1,3 @@
-
 # 🤖 Mezon-NeuroBots
 
 Một **bot học tập thông minh** được xây dựng bằng Mezon SDK và Google Gemini API, giúp học sinh cấp 3 học hiệu quả hơn với các tính năng như tạo bài tập tự luận, hướng dẫn giải, trắc nghiệm, tài liệu tham khảo và nhắc lịch học.
@@ -7,16 +6,19 @@ Một **bot học tập thông minh** được xây dựng bằng Mezon SDK và 
 
 ## 🚀 Tính năng chính
 
-| Lệnh                  | Mô tả |
+| Lệnh | Mô tả |
 |-----------------------|-------|
-| `*gioi_thieu_bot`     | Hiển thị hướng dẫn sử dụng bot. |
-| `*bai_tap`            | Tạo bài tập ngắn tự luận theo môn học và chủ đề. |
-| `*huong_dan`          | Hướng dẫn chi tiết cách giải đề bài cụ thể. |
-| `*trac_nghiem`        | Tạo 3 câu hỏi trắc nghiệm có đáp án. |
-| `*tai_lieu`           | Gợi ý 3 tài liệu học tập uy tín cho môn học. |
-| `*nhac_lich`          | Đặt lịch học (giờ & ngày cụ thể). |
-| `*xoa_lich`           | Hủy lịch học đã đặt. |
-| `*xem_lich`           | Hiển thị danh sách lịch học đã lưu. |
+| `*gioi_thieu_bot` | Hiển thị hướng dẫn sử dụng bot. |
+| `*bai_tap` | Tạo bài tập ngắn tự luận theo môn học và chủ đề. |
+| `*huong_dan` | Hướng dẫn chi tiết cách giải đề bài cụ thể. |
+| `*trac_nghiem` | Tạo 3 câu hỏi trắc nghiệm có đáp án. |
+| `*tai_lieu` | Gợi ý 3 tài liệu học tập uy tín cho môn học. |
+| `*nhac_lich` | Đặt lịch học (giờ & ngày cụ thể). |
+| `*xoa_lich` | Hủy lịch học đã đặt. |
+| `*xem_lich` | Hiển thị danh sách lịch học đã lưu. |
+| `*streak` | Kiểm tra số ngày học liên tiếp của bạn và khuyến khích duy trì thói quen học tập đều đặn. |
+
+🧠 **Lưu ý:** Streak được cập nhật tự động khi bạn dùng bot mỗi ngày, không cần lệnh riêng để kiểm tra.
 
 ---
 
@@ -78,11 +80,13 @@ GEMINI_API_KEY=your_google_gemini_api_key
 npm run start
 ```
 
-### Chạy riêng tiến trình nhắc lịch học mỗi phút:
+### Tạo thêm 1 terminal riêng để nhắc lịch học:
 
 ```bash
-node scheduler.js
+npm run scheduler
 ```
+
+🟢 **Lưu ý:** Bot chính và scheduler nhắc lịch cần chạy **độc lập**, bạn phải bật cả hai quy trình cùng lúc.
 
 ---
 
@@ -112,6 +116,8 @@ node scheduler.js
 └── README.md
 ```
 
+- `boldify.js` – Hỗ trợ format chữ đậm trong tin nhắn bot, giúp làm nổi bật các phần thông báo quan trọng.
+
 ---
 
 ## 🧠 Công nghệ sử dụng
@@ -125,6 +131,19 @@ node scheduler.js
 ## 📈 Tính năng streak học tập
 
 Mỗi khi bạn sử dụng bất kỳ lệnh nào của bot trong ngày, bot sẽ tự động cập nhật **streak ngày học liên tiếp** để giúp bạn duy trì thói quen học tập hằng ngày.
+
+Bạn có thể kiểm tra streak hiện tại bằng lệnh `*streak`.
+
+🧠 **Lưu ý:** Streak được lưu vào file `streakData.json` dưới dạng lịch sử hoạt động mỗi người dùng.
+
+---
+
+## 📂 Ghi chú về file dữ liệu
+
+- `reminders.json`: Lưu danh sách các lịch học bạn đã đặt.
+- `streakData.json`: Lưu thông tin streak ngày học liên tiếp của người dùng.
+
+⚠️ **Lưu ý:** Nếu bạn xóa hai file này, dữ liệu lịch học và streak sẽ bị mất và không thể khôi phục được!
 
 ---
 
