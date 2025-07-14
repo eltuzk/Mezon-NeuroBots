@@ -1,5 +1,6 @@
 const boldify = require("../boldify");
 const fs = require("fs");
+const { updateStreak } = require("../streak");
 
 // 📤 Xử lý lệnh *xoa_lich
 module.exports = async (client, event) => {
@@ -19,8 +20,7 @@ module.exports = async (client, event) => {
 
     const subject = parts.slice(1, parts.length - 2).join(" ");
     const time = parts[parts.length - 2];
-    let rawDate = parts[parts.length - 1];
-    rawDate = rawDate.replace(/[–—−]/g, "-"); // chuẩn hóa gạch nối
+    let rawDate = parts[parts.length - 1].replace(/[–—−]/g, "-");
 
     const timeRegex = /^\d{1,2}:\d{2}$/;
     const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
@@ -31,48 +31,44 @@ module.exports = async (client, event) => {
       });
     }
 
-    // 📅 Chuyển về định dạng lưu trữ yyyy-mm-dd
     const [dd, mm, yyyy] = rawDate.split("-");
     const isoDate = `${yyyy}-${mm}-${dd}`;
 
-    // 📂 Đọc file reminders.json
     let list = [];
     try {
       const raw = fs.readFileSync("./reminders.json", "utf-8");
       list = JSON.parse(raw);
     } catch (e) {}
 
-    const filtered = list.filter(
-      r =>
-        !(
-          r.subject.toLowerCase() === subject &&
-          r.time === time &&
-          r.date === isoDate &&
-          r.channel_id === event.channel_id
-        )
-    );
+    console.log("📥 Trước khi xóa:", list);
+
+    const filtered = list.filter(r => !(
+      r.subject.toLowerCase() === subject &&
+      r.time === time &&
+      r.date === isoDate &&
+      r.channel_id === event.channel_id
+    ));
 
     if (filtered.length === list.length) {
-      return await message.reply({
-        t: `⚠️ Không tìm thấy lịch nhắc **${subject.toUpperCase()}** lúc **${time} ngày ${rawDate}** để xóa.`
-      });
+      return await message.reply(boldify(
+        `⚠️ Không tìm thấy lịch nhắc **${subject.toUpperCase()}** lúc **${time} ngày ${rawDate}** để xóa.`
+      ));
     }
 
     fs.writeFileSync("./reminders.json", JSON.stringify(filtered, null, 2));
+    console.log("📤 Sau khi xóa:", filtered);
 
-    await message.reply({
-      t: `🗑️ Đã xóa lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}** thành công.`
-    });
-    
-    /* CẬP NHẬT STREAK và THÔNG BÁO 1 LẦN MỖI NGÀY */
-    const userId = event.sender_id; // lấy id người dùng
-    const { updated, streak } = updateStreak(userId); // chỉ lệnh đầu tiên trong ngày mới gửi
-    if (updated) {                    
+    await message.reply(boldify(
+      `🗑️ Đã xóa lịch nhắc học **${subject.toUpperCase()}** vào **${time} ngày ${rawDate}** thành công.`
+    ));
+
+    const userId = event.sender_id;
+    const { updated, streak } = updateStreak(userId);
+    if (updated) {
       const streakRaw = `🔥 **BẠN VỪA DUY TRÌ STREAK! Hiện tại: ${streak} ngày liên tiếp!**`;
-      await message.reply(boldify(streakRaw));   // 👈 dùng hàm boldify
+      await message.reply(boldify(streakRaw));
     }
-  } 
-  catch (err) {
+  } catch (err) {
     console.error("❌ Lỗi khi xử lý *xoa_lich:", err);
     try {
       const channel = await client.channels.fetch(event.channel_id);
