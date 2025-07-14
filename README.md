@@ -53,9 +53,9 @@ Một **bot học tập thông minh** được xây dựng bằng Mezon SDK và 
 | `*nhac_lich` | Đặt lịch học (giờ & ngày cụ thể). |
 | `*xoa_lich` | Hủy lịch học đã đặt. |
 | `*xem_lich` | Hiển thị danh sách lịch học đã lưu. |
-| `*streak` | Kiểm tra số ngày học liên tiếp của bạn và khuyến khích duy trì thói quen học tập đều đặn. |
+| `streak` | Kiểm tra số ngày học liên tiếp của bạn và khuyến khích duy trì thói quen học tập đều đặn. |
 
-🧠 **Lưu ý:** Streak được cập nhật tự động khi bạn dùng bot mỗi ngày, không cần lệnh riêng để kiểm tra.
+🧠 **Lưu ý:** Streak được cập nhật tự động khi bạn dùng bot mỗi ngày, **không có** lệnh riêng để kiểm tra.
 
 ---
 
