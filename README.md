@@ -22,7 +22,7 @@ Các lệnh như `*bai_tap`, `*huong_dan`, `*trac_nghiem`, `*tai_lieu` được 
 
 Sử dụng `node-cron` để thiết lập tiến trình tự động chạy mỗi phút.
 
-Bot đọc dữ liệu từ `reminders.json`, khi đến đúng thời gian học tập sẽ tự động gửi tin nhắn nhắc nhở trong kênh chat.
+Bot đọc dữ liệu từ `reminders.json`, khi đến đúng thời gian học tập sẽ tự động gửi tin nhắc nhở trong kênh chat.
 
 ### 🔥 Theo dõi streak học tập
 
