@@ -120,7 +120,7 @@ npm run start
 ### Tạo thêm 1 terminal riêng để nhắc lịch học:
 
 ```bash
-npm run scheduler
+node scheduler.js
 ```
 
 🟢 **Lưu ý:** Bot chính và scheduler nhắc lịch cần chạy **độc lập**, bạn phải bật cả hai quy trình cùng lúc.
