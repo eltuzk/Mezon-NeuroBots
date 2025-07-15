@@ -1,4 +1,4 @@
-# 🤖 Mezon-NeuroBots
+# 🤖 NeuroBots
 
 
 ## 💡 Ý tưởng dự án
